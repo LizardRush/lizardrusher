@@ -1,0 +1,15 @@
+{
+  "domain": "lizrusher.com",
+  "subdomain": "lizrush",
+  "endpoint": "https://www.lizrusher.com",
+  "version": "v1.0.0",
+  "repo_link": "https://github.com/LizardRush/lizardrusher",
+  "owner": "Lizard Rush",
+  "external_links": {
+    "discord_server": "discord.gg/DPrHETDFRB",
+    "github": "github.com/LizardRush",
+    "twitter": "https://twitter.com/RushLizard",
+    "spotify": "https://open.spotify.com/user/317rvcrfsw4nzfheuspjzy7acg2y",
+    "steam": "https://steamcommunity.com/id/windybee/"
+  }
+}
