@@ -2,6 +2,28 @@ from flask import Flask, render_template, send_from_directory, abort
 import requests
 import json
 
+# URL of the HTML file for the home page
+html_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/htmlFolder/index.html"
+
+# Fetch HTML content from the URL
+response = requests.get(html_url)
+
+if response.status_code == 200:
+    home_page_content = response.text
+    if home_page_content:
+        print("Home page content fetched successfully.")
+    else:
+        print("No content found in the HTML file.")
+else:
+    print("Failed to fetch HTML content.")
+
+app = Flask(__name__)
+
+# Route for the home page ('/')
+@app.route('/')
+def home():
+    return home_page_content
+
 # Fetch JSON data from the URL containing page names and their respective URLs
 json_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/jsonFolder/websitePages.json"
 response = requests.get(json_url)
