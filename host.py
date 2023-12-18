@@ -1,79 +1,110 @@
 from flask import Flask, render_template, send_from_directory, abort
 import requests
 import json
+from bs4 import BeautifulSoup
+
+json_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/jsonFolder/websiteInfo.json"
+response = requests.get(json_url)
+
+if response.status_code == 200:
+    website_info = response.json()
+    social_media_links = website_info.get("external_links", {})
+    if social_media_links:
+        print("Social media links fetched successfully.")
+    else:
+        print("No social media links found in the JSON.")
+else:
+    print("Failed to fetch JSON data.")
+
+# Fetch HTML content from the provided URL
+html_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/htmlFolder/index.html"
+html_response = requests.get(html_url)
+
+if html_response.status_code == 200:
+    soup = BeautifulSoup(html_response.content, 'html.parser')
+    
+    # Find the <nav> tag to insert social media links
+    nav_tag = soup.find('nav')
+    if nav_tag:
+        ul_tag = nav_tag.find('ul')
+        if ul_tag:
+            links_tag = soup.new_tag('h3')
+            links_tag.string = 'Links'
+            ul_tag.insert_before(links_tag)
+            
+            # Insert social media links into the HTML content
+            for platform, link in social_media_links.items():
+                li_tag = soup.new_tag('li')
+                a_tag = soup.new_tag('a', href=link)
+                a_tag.string = platform.capitalize()
+                li_tag.append(a_tag)
+                ul_tag.append(li_tag)
+
+            # Get the updated HTML content
+            provided_html = soup.prettify()
+        else:
+            provided_html = "No <ul> tag found in the HTML content."
+    else:
+        provided_html = "No <nav> tag found in the HTML content."
+else:
+    provided_html = "Failed to fetch HTML content."
 
 app = Flask(__name__)
 
-# URL for the JSON file containing pages and their raw links
-pages_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/jsonFolder/websitePages.json"
-
-# Fetch the page links from the JSON file
-def fetch_page_links():
-    try:
-        response = requests.get(pages_url)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return {}
-    except Exception as e:
-        print("Error fetching page links:", e)
-        return {}
-
-# Load page links from the fetched JSON content
-pages = fetch_page_links()
-
-# Dictionary for all in-code errors
-error_types = {
-    1: "JSON error: Could not read URL",
-    2: "Did not find error"
-}
-
-# URL to fetch JSON data
-website_info_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/jsonFolder/websiteInfo.json"
-
-def get_error(error):
-    # Check if the error type exists in the dictionary, else return default error
-    return error_types.get(error, error_types[2])
-
 @app.route('/')
-@app.route('/home')
-def index():
-    try:
-        # Fetch the JSON data from the URL
-        response = requests.get(website_info_url)
+def home():
+    return provided_html
 
-        # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            # Convert the response content to JSON
-            website_info = response.json()
-            # Return JSON data or pass it to the template for rendering
-            return render_template('index.html', website_info=website_info)
-        else:
-            # Handle error and display an error message
-            error_message = get_error(1)
-            return f"Error: {error_message}"
-    except Exception as e:
-        # Handle any other exceptions and display an error message
-        error_message = get_error(2)
-        return f"Error: {error_message}"
+# Fetch HTML content from the URL
+response = requests.get(html_url)
 
-# Route to serve static files (like CSS, JS, images, etc.)
-@app.route('/static/<path:filename>')
-def serve_static(filename):
-    return send_from_directory('static', filename)
-
-# Route to serve different pages based on the requested route
-@app.route('/<page>')
-def serve_page(page):
-    if page in pages:
-        # Fetch the raw link of the requested page from the fetched page links
-        raw_link = pages[page]
-        # Fetch the content of the page from the raw link and return it
-        page_content = requests.get(raw_link).text
-        return page_content
+if response.status_code == 200:
+    home_page_content = response.text
+    if home_page_content:
+        print("Home page content fetched successfully.")
     else:
-        # If the requested page doesn't exist, return a 404 error
-        return abort(404)
+        print("No content found in the HTML file.")
+else:
+    print("Failed to fetch HTML content.")
+
+app = Flask(__name__)
+
+# Route for the home page ('/')
+@app.route('/')
+def home():
+    return home_page_content
+
+if response.status_code == 200:
+    pages_data = response.json()
+    pages = pages_data  # Assuming the JSON structure directly contains page data as a dictionary
+    if pages:
+        print("Pages data fetched successfully.")
+    else:
+        print("No page data found in the JSON.")
+else:
+    print("Failed to fetch JSON data.")
+
+app = Flask(__name__)
+
+# Define a separate handler for the "home" page
+def home_handler():
+    page_content = requests.get(pages['home']).text
+    return page_content
+
+app.add_url_rule('/', endpoint='home', view_func=home_handler)
+
+# Iterate through the pages dictionary and create routes dynamically
+for page, page_url in pages.items():
+    if page != 'home':  # Skip 'home' page as it's already added
+        route_path = f'/{page}'
+        
+        def generate_handler(url):
+            def handler():
+                page_content = requests.get(url).text
+                return page_content
+            return handler
+
+        app.add_url_rule(route_path, endpoint=page, view_func=generate_handler(page_url))
 
 if __name__ == '__main__':
     app.run(debug=True)
