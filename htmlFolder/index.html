@@ -1,1 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lizard Rusher</title>
+    <!-- Add your CSS links, meta tags, or other head elements here -->
+    <style>
+/* Apply styles to create the moving background */
+body, html {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
 
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(45deg, #FFD700, #FFA500, #FF6347, #FF4500);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Your Website Name</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <h5>Links</h5>
+            {% for key, value in website_info.external_links.items() %}
+                <a href="{{ value }}">{{ key }}: </a>
+            {% endfor %}
+        </ul>
+    </nav>
+    <div class="content">
+        <!-- Placeholder for main content -->
+        <h2>Welcome to Your Website!</h2>
+        <p>This is a basic HTML template for your Flask application.</p>
+        <p>Feel free to modify and add more content here.</p>
+    </div>
+</body>
+</html>
