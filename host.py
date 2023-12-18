@@ -26,6 +26,7 @@ pages = fetch_page_links()
 error_types = {
     1: "JSON error: Could not read URL",
     2: "Did not find error"
+    3: "Error fetching website information from GitHub"
 }
 
 # URL to fetch JSON data
@@ -35,7 +36,31 @@ def get_error(error):
     # Check if the error type exists in the dictionary, else return default error
     return error_types.get(error, error_types[2])
 
+ Function to fetch the JSON data from GitHub
+def fetch_website_info():
+    url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/jsonFolder/websiteInfo.json"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+    except Exception as e:
+        print("Error fetching website info:", e)
+        return None
+
 @app.route('/')
+def index():
+    # Fetch website information from GitHub
+    website_info = fetch_website_info()
+
+    if website_info:
+        # Pass external links from website_info to the HTML template
+        external_links = website_info.get("external_links", {})
+        return render_template('index.html', external_links=external_links)
+    else:
+        # Handle if fetching data from GitHub fails
+        return get_error(3)
 @app.route('/home')
 def index():
     try:
