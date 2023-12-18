@@ -2,6 +2,28 @@ from flask import Flask, render_template, send_from_directory, abort
 import requests
 import json
 
+# URL of the JSON file containing website info
+json_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/jsonFolder/websiteInfo.json"
+
+# Fetch JSON data from the URL
+response = requests.get(json_url)
+
+# Check if the request was successful (status code 200)
+if response.status_code == 200:
+    # Parse the JSON data
+    website_info = response.json()
+
+    # Access the subdomain value
+    subdomain = website_info.get('subdomain')
+
+    if subdomain:
+        print("Subdomain:", subdomain)
+    else:
+        print("Subdomain not found in the JSON data.")
+else:
+    print("Failed to fetch JSON data.")
+
+# Initialize Flask app
 app = Flask(__name__)
 
 # URL for the JSON file containing pages and their raw links
@@ -35,7 +57,7 @@ def get_error(error):
     # Check if the error type exists in the dictionary, else return default error
     return error_types.get(error, error_types[2])
 
-@app.route('/')
+@app.route('/' subdomain=subdomaine)
 @app.route('/home')
 def index():
     try:
