@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Your Website Title</title>
+    <title>Lizard Rusher</title>
     <!-- Add your CSS links, meta tags, or other head elements here -->
     <style>
         /* Sample CSS styles - Replace with your own styles */
@@ -46,8 +46,10 @@
     <nav>
         <ul>
             <li><a href="/">Home</a></li>
-            <!-- Add other navigation links here -->
-            <!-- Example: <li><a href="/about">About</a></li> -->
+            <h5>Links</h5>
+            {% for key, value in website_info.external_links.items() %}
+                <a href="{{ value }}">{{ key }}: </a>
+            {% endfor %}
         </ul>
     </nav>
     <div class="content">
