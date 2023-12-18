@@ -1,9 +1,59 @@
 from flask import Flask, render_template, send_from_directory, abort
 import requests
 import json
+from bs4 import BeautifulSoup
 
-# URL of the HTML file for the home page
+json_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/jsonFolder/websiteInfo.json"
+response = requests.get(json_url)
+
+if response.status_code == 200:
+    website_info = response.json()
+    social_media_links = website_info.get("external_links", {})
+    if social_media_links:
+        print("Social media links fetched successfully.")
+    else:
+        print("No social media links found in the JSON.")
+else:
+    print("Failed to fetch JSON data.")
+
+# Fetch HTML content from the provided URL
 html_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/htmlFolder/index.html"
+html_response = requests.get(html_url)
+
+if html_response.status_code == 200:
+    soup = BeautifulSoup(html_response.content, 'html.parser')
+    
+    # Find the <nav> tag to insert social media links
+    nav_tag = soup.find('nav')
+    if nav_tag:
+        ul_tag = nav_tag.find('ul')
+        if ul_tag:
+            links_tag = soup.new_tag('h3')
+            links_tag.string = 'Links'
+            ul_tag.insert_before(links_tag)
+            
+            # Insert social media links into the HTML content
+            for platform, link in social_media_links.items():
+                li_tag = soup.new_tag('li')
+                a_tag = soup.new_tag('a', href=link)
+                a_tag.string = platform.capitalize()
+                li_tag.append(a_tag)
+                ul_tag.append(li_tag)
+
+            # Get the updated HTML content
+            provided_html = soup.prettify()
+        else:
+            provided_html = "No <ul> tag found in the HTML content."
+    else:
+        provided_html = "No <nav> tag found in the HTML content."
+else:
+    provided_html = "Failed to fetch HTML content."
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return provided_html
 
 # Fetch HTML content from the URL
 response = requests.get(html_url)
@@ -23,10 +73,6 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return home_page_content
-
-# Fetch JSON data from the URL containing page names and their respective URLs
-json_url = "https://raw.githubusercontent.com/LizardRush/lizardrusher/main/jsonFolder/websitePages.json"
-response = requests.get(json_url)
 
 if response.status_code == 200:
     pages_data = response.json()
