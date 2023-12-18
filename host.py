@@ -36,6 +36,7 @@ def get_error(error):
     return error_types.get(error, error_types[2])
 
 @app.route('/')
+@app.route('/home')
 def index():
     try:
         # Fetch the JSON data from the URL
